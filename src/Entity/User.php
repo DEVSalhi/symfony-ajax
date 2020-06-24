@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -32,6 +34,16 @@ class User implements UserInterface
      * @ORM\Column(type="string")
      */
     private $password;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\PostLike", mappedBy="user")
+     */
+    private $postLikes;
+
+    public function __construct()
+    {
+        $this->postLikes = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -109,5 +121,36 @@ class User implements UserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection|PostLike[]
+     */
+    public function getPostLikes(): Collection
+    {
+        return $this->postLikes;
+    }
+
+    public function addPostLike(PostLike $postLike): self
+    {
+        if (!$this->postLikes->contains($postLike)) {
+            $this->postLikes[] = $postLike;
+            $postLike->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removePostLike(PostLike $postLike): self
+    {
+        if ($this->postLikes->contains($postLike)) {
+            $this->postLikes->removeElement($postLike);
+            // set the owning side to null (unless already changed)
+            if ($postLike->getUser() === $this) {
+                $postLike->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }
